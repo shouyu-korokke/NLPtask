@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-import csv
+import csv, re
+
 
 def fetch_articles_from_api(tag_id, page):
     api_url = f'https://www.unb.com.bd/api/tag-news?tag_id={tag_id}&item={page}'
@@ -19,6 +20,7 @@ def fetch_articles_from_api(tag_id, page):
         #print("Failed to fetch articles from the API.")
         return []
 
+
 # Needed: <publication date>;<update date>;<meta location>;<title>;<HTML text>;<rawtext>
 def extract_article_info(url):
     response = requests.get(url)
@@ -26,25 +28,12 @@ def extract_article_info(url):
         try:
             soup = BeautifulSoup(response.content, 'html.parser')
             # print(soup.prettify())  # Print the HTML content for debugging
-
-            publish_date_element = soup.find('li', class_='news-section-bar')
-            publish_date = publish_date_element.text.strip()
-            print(f"Publish date: {publish_date}\n")
-
-            # print("Success to get publish date\n")
-            update_date_element = soup.find('li', class_='news-section-bar', string='Update-')
-            update_date = update_date_element.find('span', class_='icon qb-clock').text.strip() if update_date_element else None
-            # print("Success to get update date\n")
+            (publish_date, update_date) = extract_publish_date(soup)
             meta_location_element = soup.find('li', class_='news-section-bar').find('span', class_='icon fa fa-map-marker')
-            meta_location = meta_location_element.next_sibling.strip()  # Extracting the text next to the span element
-            # print("Success to get meta location\n")
+            meta_location = meta_location_element.next_sibling.strip()
             title_element = soup.find('title')
             title = title_element.text.strip()
-            # print("Success to get title\n")
-            html_text = soup.find('div', class_='news-article-content').get_text(separator='\n').strip() if soup.find('div', class_='news-article-content') else None
-            # print("Success to get html_text\n")
-            raw_text = soup.find('div', class_='news-article-content').get_text(separator='\n', strip=True).strip() if soup.find('div', class_='news-article-content') else None
-            # print("Success to get raw text\n")
+            (html_text, raw_text) = extract_text_data(soup)
             return publish_date, update_date, meta_location, title, html_text, raw_text
         except AttributeError:
             print(f"Failed to extract information from article: {url}")
@@ -53,6 +42,7 @@ def extract_article_info(url):
         print(f"Failed to fetch article from URL: {url}")
         return None
 
+
 def save_to_csv(articles_data):
     with open('accidents_data.csv', 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile, delimiter=';')
@@ -60,6 +50,34 @@ def save_to_csv(articles_data):
         for article_data in articles_data:
             writer.writerow(article_data)
 
+
+def extract_publish_date(soup):
+    li_elements = soup.find_all('li')
+    publish_date = ""
+    update_date = ""
+    for li in li_elements:
+        if "Publish-" in li.text:
+            publish_date = li.text.split("Publish-")[-1].strip()
+        if "Update-" in li.text:
+            update_date = li.text.split("Update-")[-1].strip()
+    return publish_date, update_date
+
+
+def extract_update_date(soup):
+    li_elements = soup.find_all('li')
+    for li in li_elements:
+        if "Update-" in li.text:
+            return li.text.split("Update-")[-1].strip()
+    return "-"
+
+
+def extract_text_data(soup):
+    target_div = soup.find('div', class_='text')
+    if not target_div:
+        return "", ""
+    html_text = ''.join(str(p) for p in target_div.find_all('p'))
+    raw_text = ' '.join(p.get_text(strip=True) for p in target_div.find_all('p'))
+    return html_text, raw_text
 
 if __name__ == "__main__":
     tag_id = 54
@@ -70,8 +88,8 @@ if __name__ == "__main__":
         current_page = fetch_articles_from_api(tag_id,i)
         if current_page:
             #print("List of article URLs:"+f'{i}')
-            #for url in article_urls:
-                #print(url)
+            for url in article_urls:
+                print(url)
             article_urls.extend(current_page)
         else:
             break
