@@ -50,8 +50,8 @@ def save_to_csv(articles_data):
 
 def extract_dates(soup):
     li_elements = soup.find_all('li')
-    publish_date = " "
-    update_date = " "
+    publish_date = ""
+    update_date = ""
     for li in li_elements:
         if "Publish-" in li.text:
             publish_date = li.text.split("Publish-")[-1].strip()
@@ -66,13 +66,13 @@ def extract_location(soup):
         meta_location = meta_location_element.next_sibling.strip()
         return meta_location
     else:
-        return " "
+        return ""
 
 
 def extract_text_data(soup):
     target_div = soup.find('div', class_='text')
     if not target_div:
-        return " ", " "
+        return "", ""
     html_text = ''.join(str(p) for p in target_div.find_all('p'))
     raw_text = ' '.join(p.get_text(strip=True) for p in target_div.find_all('p'))
     return html_text, raw_text
