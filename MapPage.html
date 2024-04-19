@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Map Test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+    <div id="map" style="height: 100vh;"></div>
+    <script>
+        var map = L.map('map').setView([23.8103, 90.4125], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '?OpenStreetMap contributors'
+        }).addTo(map);
+
+        var markers = [];
+        // JavaScript function to add markers to the map
+        function addAccidentMarker(lat, lng, title, description) {
+            var marker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`<b>${title}</b><br>${description}`);
+            markers.push(marker); // Add the marker to the array for tracking
+        }
+
+        function clearMarkers() {
+            for (var i = 0; i < markers.length; i++) {
+                map.removeLayer(markers[i]);
+            }
+            markers = []; // Reset the markers array
+        }
+    </script>
+</body>
+</html>
+
