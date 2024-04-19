@@ -143,7 +143,7 @@ namespace NLP
         private async void ProcessButtonClick(object sender, RoutedEventArgs e)
         {
             string pythonExecutable = @"C:\Python311\python.exe"; // Path to the Python executable
-            string scriptPath = @"C:\Users\liu chang\urlAcquisition.py"; // Path to your Python script
+            string scriptPath = @"C:\Users\liu chang\url.py"; // Path to your Python script
             string url = UrlTextBox.Text; // Assuming UrlTextBox is the TextBox where the URL is entered
 
             if (string.IsNullOrWhiteSpace(url))
